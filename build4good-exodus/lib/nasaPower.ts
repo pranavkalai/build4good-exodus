@@ -16,8 +16,8 @@ function getDateRange() {
   const startYear = endYear - 9
 
   return {
-    start: `${startYear}0101`,
-    end: `${endYear}1231`,
+    start: `${startYear}`, // proper date formatting
+    end: `${endYear}`,
   }
 }
 
