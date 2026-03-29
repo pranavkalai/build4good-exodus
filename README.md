@@ -1,7 +1,9 @@
-**Project Overview**
+# Operation Exodus
+
+**Project Overview**:
 A sci-fi storytelling app that uses real NASA climate and exoplanet data to answer: "Can we find a new home before Earth becomes uninhabitable?" Users progress through 3 acts.
 
-**Core Tech Stack**
+**Core Tech Stack**:
 Frontend: Next.js 14 + React 18 + TypeScript
 3D Rendering: Three.js + React Three Fiber + Drei
 State Management: Zustand
@@ -9,12 +11,12 @@ Styling: Tailwind CSS + Framer Motion
 Data APIs: NASA Exoplanet Archive TAP API, NASA POWER API (Earth climate data)
 Build: Webpack (with ONNX Runtime alias handling)
 
-**NASA Exoplanet Archive**
+**NASA Exoplanet Archive**:
 Fetches top 300 exoplanets with radius < 2x Earth
 Queries: pl_name, pl_rade, pl_bmasse, pl_orbper, sy_dist, pl_eqt, ra, dec
 Calculates Colonial Viability Index (CVI) using ESI component formula
 
-**NASA POWER**
+**NASA POWER**:
 10-year historical climate data for US center (39.5°N, -98.35°W)
 5 parameters: T2M (temperature), PRECTOTCORR (precipitation), RH2M (humidity), WS2M (wind), ALLSKY_SFC_SW_DWN (solar radiation)
 
