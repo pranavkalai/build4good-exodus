@@ -19,6 +19,7 @@ type SurfaceTextureSet = Pick<EarthTextureSet, 'dayTexture' | 'nightTexture'>
 
 const LIGHT_DIRECTION = new THREE.Vector3(1, 0.35, 0.8).normalize()
 const ATMOSPHERE_COLOR = new THREE.Color('#4db2ff')
+const HEAT_COLOR = new THREE.Color('#ff5a36')
 const DEFAULT_CAMERA_POSITION = new THREE.Vector3(0, 0, 5.7)
 const EARTH_RADIUS = 1.38
 const EARTH_SPIN_SPEED = 0.08
@@ -45,6 +46,8 @@ const surfaceFragmentShader = `
   uniform sampler2D uNightTexture;
   uniform vec3 uLightDirection;
   uniform vec3 uAtmosphereColor;
+  uniform vec3 uHeatColor;
+  uniform float uHeatLevel;
 
   varying vec2 vUv;
   varying vec3 vWorldNormal;
@@ -66,10 +69,14 @@ const surfaceFragmentShader = `
 
     float fresnel = pow(1.0 - max(dot(viewDir, normal), 0.0), 3.0);
     float specular = pow(max(dot(reflect(-lightDir, normal), viewDir), 0.0), 18.0) * 0.18;
+    float heatMask = smoothstep(0.15, 1.0, 1.0 - daylight) * 0.55 + fresnel * 0.45;
+    float heatWave = 0.92 + 0.08 * sin(vUv.y * 22.0 + vUv.x * 9.0);
+    float heatStrength = clamp(uHeatLevel * heatMask * heatWave, 0.0, 1.0);
 
     vec3 finalColor = baseColor;
     finalColor += uAtmosphereColor * fresnel * 0.24;
     finalColor += vec3(1.0, 0.96, 0.92) * specular;
+    finalColor = mix(finalColor, finalColor + uHeatColor * 0.28, heatStrength);
 
     gl_FragColor = vec4(finalColor, 1.0);
   }
@@ -91,6 +98,8 @@ const atmosphereVertexShader = `
 const atmosphereFragmentShader = `
   uniform vec3 uAtmosphereColor;
   uniform vec3 uLightDirection;
+  uniform vec3 uHeatColor;
+  uniform float uHeatLevel;
 
   varying vec3 vWorldNormal;
   varying vec3 vWorldPosition;
@@ -100,9 +109,13 @@ const atmosphereFragmentShader = `
     vec3 viewDir = normalize(cameraPosition - vWorldPosition);
     float fresnel = pow(1.0 - abs(dot(viewDir, normal)), 5.0);
     float sunlight = max(dot(normal, normalize(uLightDirection)), 0.0);
+    float heatGlow = mix(1.0, 1.7, uHeatLevel);
 
-    vec3 color = uAtmosphereColor * (0.8 + sunlight * 1.05);
-    gl_FragColor = vec4(color, fresnel);
+    vec3 baseColor = uAtmosphereColor * (0.8 + sunlight * 1.05);
+    vec3 heatedColor = (uHeatColor * 1.05 + vec3(0.24, 0.04, 0.02)) * (0.9 + sunlight * 0.65);
+    vec3 color = mix(baseColor, heatedColor, uHeatLevel);
+
+    gl_FragColor = vec4(color, fresnel * heatGlow);
   }
 `
 
@@ -192,8 +205,9 @@ function useEarthTextures() {
   return textures
 }
 
-function EarthSphere({ dayTexture, nightTexture }: SurfaceTextureSet) {
+function EarthSphere({ dayTexture, nightTexture, heatLevel }: SurfaceTextureSet & { heatLevel: number }) {
   const { gl } = useThree()
+  const shaderRef = useRef<THREE.ShaderMaterial>(null)
 
   useEffect(() => {
     const anisotropy = gl.capabilities.getMaxAnisotropy()
@@ -208,16 +222,27 @@ function EarthSphere({ dayTexture, nightTexture }: SurfaceTextureSet) {
     }
   }, [dayTexture, gl, nightTexture])
 
+  useEffect(() => {
+    if (!shaderRef.current) {
+      return
+    }
+
+    shaderRef.current.uniforms.uHeatLevel.value = heatLevel
+  }, [heatLevel])
+
   if (dayTexture && nightTexture) {
     return (
-        <mesh>
+      <mesh>
         <sphereGeometry args={[EARTH_RADIUS, 128, 128]} />
         <shaderMaterial
+          ref={shaderRef}
           uniforms={{
             uDayTexture: { value: dayTexture },
             uNightTexture: { value: nightTexture },
             uLightDirection: { value: LIGHT_DIRECTION },
             uAtmosphereColor: { value: ATMOSPHERE_COLOR },
+            uHeatColor: { value: HEAT_COLOR },
+            uHeatLevel: { value: heatLevel },
           }}
           vertexShader={surfaceVertexShader}
           fragmentShader={surfaceFragmentShader}
@@ -234,8 +259,9 @@ function EarthSphere({ dayTexture, nightTexture }: SurfaceTextureSet) {
           map={dayTexture}
           roughness={0.95}
           metalness={0.02}
-          emissive="#08111d"
-          emissiveIntensity={0.18}
+          color={new THREE.Color().lerpColors(new THREE.Color('#ffffff'), HEAT_COLOR, heatLevel * 0.14)}
+          emissive="#2a0c0c"
+          emissiveIntensity={0.18 + heatLevel * 0.24}
         />
       </mesh>
     )
@@ -245,11 +271,11 @@ function EarthSphere({ dayTexture, nightTexture }: SurfaceTextureSet) {
     <mesh>
       <sphereGeometry args={[EARTH_RADIUS, 128, 128]} />
       <meshStandardMaterial
-        color="#4c7691"
+        color={new THREE.Color().lerpColors(new THREE.Color('#4c7691'), new THREE.Color('#92525a'), heatLevel * 0.38)}
         roughness={0.92}
         metalness={0.02}
-        emissive="#08111d"
-        emissiveIntensity={0.3}
+        emissive="#2a0c0c"
+        emissiveIntensity={0.3 + heatLevel * 0.26}
       />
     </mesh>
   )
@@ -289,7 +315,7 @@ function CloudLayer({ cloudTexture }: { cloudTexture: THREE.Texture | null }) {
   )
 }
 
-function AtmosphereShell() {
+function AtmosphereShell({ heatLevel }: { heatLevel: number }) {
   return (
     <mesh scale={1.12}>
       <sphereGeometry args={[EARTH_RADIUS, 128, 128]} />
@@ -299,6 +325,8 @@ function AtmosphereShell() {
         uniforms={{
           uAtmosphereColor: { value: ATMOSPHERE_COLOR },
           uLightDirection: { value: LIGHT_DIRECTION },
+          uHeatColor: { value: HEAT_COLOR },
+          uHeatLevel: { value: heatLevel },
         }}
         transparent
         depthWrite={false}
@@ -309,7 +337,7 @@ function AtmosphereShell() {
   )
 }
 
-function EarthRig({ cloudTexture, dayTexture, nightTexture }: EarthTextureSet) {
+function EarthRig({ cloudTexture, dayTexture, nightTexture, heatLevel }: EarthTextureSet & { heatLevel: number }) {
   const spinRef = useRef<THREE.Group>(null)
   const cloudRef = useRef<THREE.Group>(null)
 
@@ -326,12 +354,12 @@ function EarthRig({ cloudTexture, dayTexture, nightTexture }: EarthTextureSet) {
   return (
     <group>
       <group ref={spinRef}>
-        <EarthSphere dayTexture={dayTexture} nightTexture={nightTexture} />
+        <EarthSphere dayTexture={dayTexture} nightTexture={nightTexture} heatLevel={heatLevel} />
         <group ref={cloudRef}>
           <CloudLayer cloudTexture={cloudTexture} />
         </group>
       </group>
-      <AtmosphereShell />
+      <AtmosphereShell heatLevel={heatLevel} />
     </group>
   )
 }
@@ -380,20 +408,39 @@ function EarthControls() {
 
 function EarthScene() {
   const textures = useEarthTextures()
+  const heatLevel = useAppStore((state) => state.earthHeatLevel)
 
   return (
     <>
-      <ambientLight intensity={0.26} color="#9fc2e8" />
-      <hemisphereLight args={['#d7ecff', '#1c1310', 0.85]} />
-      <directionalLight position={[5, 1.5, 4]} intensity={2.45} color="#fff4df" />
-      <directionalLight position={[-4, -2, -3]} intensity={0.28} color="#5e84b0" />
-      <EarthRig {...textures} />
+      <ambientLight
+        intensity={0.26 + heatLevel * 0.08}
+        color={new THREE.Color().lerpColors(new THREE.Color('#9fc2e8'), new THREE.Color('#ffb08b'), heatLevel * 0.6)}
+      />
+      <hemisphereLight
+        args={['#d7ecff', '#1c1310', 0.85 + heatLevel * 0.18]}
+        color={new THREE.Color().lerpColors(new THREE.Color('#d7ecff'), new THREE.Color('#ffd1bd'), heatLevel * 0.55)}
+        groundColor={new THREE.Color().lerpColors(new THREE.Color('#1c1310'), new THREE.Color('#44110f'), heatLevel * 0.72)}
+      />
+      <directionalLight
+        position={[5, 1.5, 4]}
+        intensity={2.45 + heatLevel * 0.42}
+        color={new THREE.Color().lerpColors(new THREE.Color('#fff4df'), new THREE.Color('#ffb56b'), heatLevel * 0.65)}
+      />
+      <directionalLight
+        position={[-4, -2, -3]}
+        intensity={0.28 + heatLevel * 0.16}
+        color={new THREE.Color().lerpColors(new THREE.Color('#5e84b0'), new THREE.Color('#b33b2e'), heatLevel * 0.82)}
+      />
+      <EarthRig {...textures} heatLevel={heatLevel} />
       <EarthControls />
     </>
   )
 }
 
 export function EarthViewer() {
+  const heatLevel = useAppStore((state) => state.earthHeatLevel)
+  const pulseDuration = `${Math.max(1.5, 3 - heatLevel * 1.3)}s`
+
   return (
     <div className="relative flex h-full flex-1 items-center justify-center overflow-hidden bg-[#0c0a09]/45">
       <div
@@ -401,6 +448,14 @@ export function EarthViewer() {
         style={{
           background:
             'radial-gradient(circle at center, rgba(12,10,9,0.08) 0%, rgba(12,10,9,0.2) 42%, rgba(12,10,9,0.78) 100%)',
+        }}
+      />
+      <div
+        className="absolute inset-0 pointer-events-none transition-opacity duration-700"
+        style={{
+          opacity: heatLevel * 0.6,
+          background:
+            'radial-gradient(circle at center, rgba(255,87,66,0.05) 0%, rgba(255,70,38,0.12) 28%, rgba(127,29,29,0.32) 62%, rgba(12,10,9,0) 82%)',
         }}
       />
 
@@ -422,7 +477,12 @@ export function EarthViewer() {
       <div className="absolute w-[500px] h-[500px] rounded-full border-[0.5px] border-rose-300/30 pointer-events-none shadow-[0_0_10px_rgba(251,113,133,0.2)]" />
 
       <div className="relative z-10 w-[380px] h-[380px]">
-        <div className="absolute inset-0 rounded-full overflow-hidden shadow-[0_0_120px_rgba(251,113,133,0.28)]">
+        <div
+          className="absolute inset-0 rounded-full overflow-hidden"
+          style={{
+            boxShadow: `0 0 ${120 + heatLevel * 110}px rgba(251,113,133,${0.28 + heatLevel * 0.16})`,
+          }}
+        >
           <Canvas
             camera={{ position: DEFAULT_CAMERA_POSITION.toArray() as [number, number, number], fov: 28 }}
             dpr={[1, 1.75]}
@@ -437,25 +497,56 @@ export function EarthViewer() {
                 'radial-gradient(circle at center, rgba(15,23,42,0) 0%, rgba(7,10,17,0.18) 45%, rgba(2,6,23,0.7) 100%)',
             }}
           />
+          <div
+            className="absolute inset-0 rounded-full pointer-events-none transition-opacity duration-700"
+            style={{
+              opacity: heatLevel * 0.9,
+              background:
+                'radial-gradient(circle at 50% 50%, rgba(255,173,122,0) 34%, rgba(255,116,86,0.08) 58%, rgba(239,68,68,0.24) 78%, rgba(127,29,29,0.42) 100%)',
+              mixBlendMode: 'screen',
+            }}
+          />
         </div>
 
         <div className="absolute inset-0 rounded-full border-[0.5px] border-rose-300/30 pointer-events-none shadow-[0_0_10px_rgba(251,113,133,0.2)]" />
 
         <div
-          className="absolute inset-0 rounded-full scale-110 animate-ping pointer-events-none shadow-[0_0_54px_rgba(244,63,94,0.62),inset_0_0_34px_rgba(251,113,133,0.42)]"
-          style={{ animationDuration: '2.5s' }}
+          className={`absolute inset-0 rounded-full pointer-events-none ${heatLevel > 0 ? 'earth-heat-pulse' : ''}`}
+          style={{
+            transform: `scale(${1.1 + heatLevel * 0.08})`,
+            opacity: heatLevel,
+            animationDuration: pulseDuration,
+            boxShadow: `0 0 ${54 + heatLevel * 52}px rgba(244,63,94,${0.14 + heatLevel * 0.48}), inset 0 0 ${34 + heatLevel * 22}px rgba(251,113,133,${0.08 + heatLevel * 0.34})`,
+          }}
         />
         <div
-          className="absolute inset-0 rounded-full border-2 border-rose-500/80 scale-110 animate-ping pointer-events-none"
-          style={{ animationDuration: '2.5s' }}
+          className={`absolute inset-0 rounded-full border-2 pointer-events-none ${heatLevel > 0 ? 'earth-heat-pulse' : ''}`}
+          style={{
+            transform: `scale(${1.1 + heatLevel * 0.08})`,
+            opacity: heatLevel * 0.92,
+            borderColor: `rgba(251, 113, 97, ${0.18 + heatLevel * 0.56})`,
+            animationDuration: pulseDuration,
+          }}
         />
         <div
-          className="absolute inset-0 rounded-full scale-125 animate-ping pointer-events-none shadow-[0_0_44px_rgba(251,113,133,0.42),inset_0_0_26px_rgba(251,113,133,0.24)]"
-          style={{ animationDuration: '2.5s', animationDelay: '0.4s' }}
+          className={`absolute inset-0 rounded-full pointer-events-none ${heatLevel > 0 ? 'earth-heat-pulse' : ''}`}
+          style={{
+            transform: `scale(${1.25 + heatLevel * 0.12})`,
+            opacity: heatLevel * 0.78,
+            animationDuration: pulseDuration,
+            animationDelay: '0.4s',
+            boxShadow: `0 0 ${44 + heatLevel * 48}px rgba(251,113,133,${0.12 + heatLevel * 0.3}), inset 0 0 ${26 + heatLevel * 20}px rgba(255,144,100,${0.06 + heatLevel * 0.16})`,
+          }}
         />
         <div
-          className="absolute inset-0 rounded-full border border-rose-400/55 scale-125 animate-ping pointer-events-none"
-          style={{ animationDuration: '2.5s', animationDelay: '0.4s' }}
+          className={`absolute inset-0 rounded-full border pointer-events-none ${heatLevel > 0 ? 'earth-heat-pulse' : ''}`}
+          style={{
+            transform: `scale(${1.25 + heatLevel * 0.12})`,
+            opacity: heatLevel * 0.74,
+            borderColor: `rgba(251, 146, 120, ${0.14 + heatLevel * 0.34})`,
+            animationDuration: pulseDuration,
+            animationDelay: '0.4s',
+          }}
         />
       </div>
 
