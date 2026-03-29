@@ -8,7 +8,15 @@ import { BottomBar } from '@/components/earth/BottomBar'
 import { StarField } from '@/components/three/StarField'
 import { useAppStore } from '@/store/useAppStore'
 
-export default function ActOne({ onInitiateExodus }: { onInitiateExodus: () => void }) {
+type Act = 'earth' | 'exoplanet' | 'launch'
+
+export default function ActOne({
+  onInitiateExodus,
+  onNavigate,
+}: {
+  onInitiateExodus: () => void
+  onNavigate: (act: Act) => void
+}) {
   const earthView = useAppStore((state) => state.earthView)
 
   return (
@@ -20,7 +28,7 @@ export default function ActOne({ onInitiateExodus }: { onInitiateExodus: () => v
           target={earthView.target}
         />
       </div>
-      <MissionNav activeAct="earth" />
+      <MissionNav activeAct="earth" onNavigate={onNavigate} />
       <div className="relative z-10 flex flex-1 overflow-hidden pt-16">
         <SideNav activeItem="critical" />
         <EarthViewer />
