@@ -10,18 +10,18 @@ const INSTRUCTIONS = [
   {
     part: '01',
     title: 'EARTH IS DYING',
-    content: `You are on the Mission Control dashboard. Earth's climate is deteriorating in real time using NASA POWER data and linear regression projections. Watch the stat cards on the right — each one shows a projected future value based on 10 years of real climate data. The countdown timer at the bottom shows how many years until the first critical threshold is breached. When it hits zero, it's too late.`,
+    content: `You are on the Mission Control dashboard. Earth\'s climate is deteriorating in real time using NASA POWER data and linear regression projections. Watch the stat cards on the right — each one shows a projected future value based on 10 years of real climate data. The countdown timer at the bottom shows how many years until the first critical threshold is breached. When it hits zero, it\'s too late.`,
   },
   {
     part: '02',
     title: 'FIND A NEW HOME',
-    content: `Navigate to EXOPLANET SEARCH using the top nav or click INITIATE EXODUS. You'll see a 3D star field populated with real exoplanet candidates from the NASA Exoplanet Archive. Click any planet to lock it as your target. The right panel shows a radar chart comparing the planet's stats directly against Earth's baseline — temperature, radius, mass, orbital period, and distance. Use the Earth Baseline panel on the left as your reference. Find the best match.`,
+    content: `Navigate to EXOPLANET SEARCH using the top nav or click INITIATE EXODUS. You\'ll see a 3D star field populated with real exoplanet candidates from the NASA Exoplanet Archive. Click any planet to lock it as your target. The right panel shows a radar chart comparing the planet\'s stats directly against Earth\'s baseline — temperature, radius, mass, orbital period, and distance. Use the Earth Baseline panel on the left as your reference. Find the best match.`,
   },
   {
     part: '03',
     title: 'CONFIRM THE MISSION',
-    content: `Once you've selected a destination, click SELECT AS DESTINATION to proceed to LAUNCH SEQUENCE. Here you'll see the orbital trajectory map, the live telemetry dial showing launch window viability, and your mission summary. The AI mission log initializes automatically. When you're ready, hit CONFIRM LAUNCH. Your Colonial Viability Index score is revealed — this is the final verdict on whether humanity survives.`,
-  },
+    content: `Once you've selected a destination, click SELECT AS DESTINATION to proceed to LAUNCH SEQUENCE. The interface shifts into a cinematic view — an orbital trajectory arc that dynamically scales based on the distance to your chosen planet. Longer distances produce more extreme arcs, reflecting the risk of your decision. When you're ready, hit CONFIRM LAUNCH to initiate the sequence. At the end of the launch, your Colonial Viability Index (CVI) is revealed — your final score and the ultimate measure of whether humanity survives.`,
+  }
 ]
 
 const DEVPOST_CRITERIA = [
@@ -48,8 +48,8 @@ const DEVPOST_CRITERIA = [
   {
     criterion: 'STORYTELLING',
     requirement: 'Does it feel like a discovery, not just a chart?',
-    response: 'The app is structured as three acts: dread (watch Earth deteriorate), hope (search for a new home), and decision (confirm the mission). The CVI score is withheld until Act 3 as a final reveal. The AI mission log, cinematic launch sequence, and countdown timer all serve the narrative arc.',
-  },
+    response: 'The app is structured as a tonal progression across three acts. It begins with a sterile, mission-critical interface focused on hard climate data, transitions into exploratory discovery through exoplanet search, and concludes with a cinematic, arcade-like launch sequence. The final moment shifts into a more melancholic, bittersweet tone as the Colonial Viability Index (CVI) is revealed — transforming the experience from analysis into a reflective outcome driven by the user’s decisions.',
+  }
 ]
 
 const backdropVariants = {
