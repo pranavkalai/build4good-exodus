@@ -69,16 +69,21 @@ export async function fetchRawPlanets(): Promise<EnrichedNasaRow[]> {
 }
 
 export function mapRow(row: EnrichedNasaRow): Planet {
+  const distanceLy = Math.round(row.sy_dist * 3.26 * 10) / 10;
+  const baseCvi = Math.round(row.habitabilityScore * 100);
+  const distancePenalty = Math.round(distanceLy / 50);
+  const cvi = Math.max(0, baseCvi - distancePenalty);
+
   return {
     id: row.pl_name.toLowerCase().replaceAll(" ", "-"),
     name: row.pl_name,
     radius: row.pl_rade,
     mass: row.pl_bmasse,
     temp: row.pl_eqt,
-    distanceLy: Math.round(row.sy_dist * 3.26 * 10) / 10,
+    distanceLy,
     period: row.pl_orbper,
     ra: row.ra,
     dec: row.dec,
-    cvi: Math.round(row.habitabilityScore * 100),
+    cvi,
   };
 }
