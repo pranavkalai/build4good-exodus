@@ -1,39 +1,33 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 
+import {
+  getEarthDataRegressionCoefficients,
+  getEarthDataRegressionIndexInfo,
+} from '@/lib/get-earth-data-regression'
 import { getEarthData } from '@/lib/nasaPower'
 
-function parseCoordinate(value: string | null, name: string) {
-  if (value === null) {
-    throw new Error(`Missing ${name} query parameter`)
-  }
+const UNITED_STATES_COORDINATES = {
+  latitude: 39.8283,
+  longitude: -98.5795,
+} as const
 
-  const parsed = Number(value)
-
-  if (!Number.isFinite(parsed)) {
-    throw new Error(`Invalid ${name} query parameter`)
-  }
-
-  return parsed
-}
-
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    const latitude = parseCoordinate(
-      request.nextUrl.searchParams.get('latitude'),
-      'latitude'
-    )
-    const longitude = parseCoordinate(
-      request.nextUrl.searchParams.get('longitude'),
-      'longitude'
-    )
+    const { latitude, longitude } = UNITED_STATES_COORDINATES
 
     const earthData = await getEarthData(latitude, longitude)
+    const regressionCoefficients =
+      getEarthDataRegressionCoefficients(earthData)
+    const regressionIndexInfo = getEarthDataRegressionIndexInfo(earthData)
 
-    return NextResponse.json(earthData)
+    return NextResponse.json({
+      regressionCoefficients: regressionCoefficients.coefficients,
+      regressionIndexInfo,
+    })
   } catch (error) {
     const message =
       error instanceof Error ? error.message : 'Failed to fetch earth data'
 
-    return NextResponse.json({ error: message }, { status: 400 })
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }
