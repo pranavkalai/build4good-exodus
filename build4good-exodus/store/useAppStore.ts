@@ -40,6 +40,7 @@ interface AppStore {
   timeToBreachYears: number | null
   breachingParam: string | null
   elapsedYears: number
+  earthHeatLevel: number
   filters: {
     cvi: number
     radius: number
@@ -55,6 +56,7 @@ interface AppStore {
   setEarthSeries: (series: EarthSeries) => void
   setEarthLoading: (loading: boolean) => void
   setTimeToBreach: (years: number, param: string) => void
+  setEarthHeatLevel: (level: number) => void
   setEarthView: (cameraPosition: [number, number, number], target: [number, number, number]) => void
   tickYear: () => void
   setFilter: (key: keyof AppStore['filters'], value: number) => void
@@ -69,6 +71,7 @@ export const useAppStore = create<AppStore>((set) => ({
   timeToBreachYears: null,
   breachingParam: null,
   elapsedYears: 0,
+  earthHeatLevel: 0,
   filters: { cvi: 0, radius: 2, distanceLy: 5000 },
   earthView: {
     cameraPosition: [0, 0, 5.7],
@@ -80,6 +83,7 @@ export const useAppStore = create<AppStore>((set) => ({
   setEarthSeries: (series) => set({ earthSeries: series }),
   setEarthLoading: (loading) => set({ earthLoading: loading }),
   setTimeToBreach: (years, param) => set({ timeToBreachYears: years, breachingParam: param }),
+  setEarthHeatLevel: (level) => set({ earthHeatLevel: Math.max(0, Math.min(1, level)) }),
   setEarthView: (cameraPosition, target) => set({ earthView: { cameraPosition, target } }),
   tickYear: () => set(s => ({ elapsedYears: s.elapsedYears + 1 })),
   setFilter: (key, value) => set(s => ({ filters: { ...s.filters, [key]: value } })),

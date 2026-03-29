@@ -70,3 +70,39 @@ body {
     filter: none;
   }
 }
+
+@keyframes earth-heat-pulse {
+  0%, 100% {
+    filter: saturate(1) brightness(1);
+  }
+  50% {
+    filter: saturate(1.18) brightness(1.08);
+  }
+}
+
+.earth-heat-pulse {
+  animation-name: earth-heat-pulse;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+
+@keyframes earth-urgent-flash {
+  0%, 100% {
+    filter: brightness(1);
+    background-color: rgba(10, 10, 10, 0.72);
+    border-color: rgba(251, 146, 60, 0.42);
+    color: rgba(245, 245, 244, 0.96);
+  }
+  50% {
+    filter: brightness(1.12);
+    background-color: rgba(127, 29, 29, 0.78);
+    border-color: rgba(251, 113, 133, 0.92);
+    color: rgba(255, 241, 242, 1);
+  }
+}
+
+.earth-urgent-flash {
+  animation-name: earth-urgent-flash;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
