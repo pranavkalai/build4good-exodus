@@ -13,7 +13,7 @@ export default function Home() {
   return (
     <main className="w-full h-screen overflow-hidden bg-[#0e0e0e]">
       {act === 'earth' && (
-        <ActOne onInitiateExodus={() => setAct('exoplanet')} />
+        <ActOne onInitiateExodus={() => setAct('exoplanet')} onNavigate={setAct} />
       )}
       {act === 'exoplanet' && (
         <ActTwo onNavigate={setAct} onSelectDestination={() => setAct('launch')} />
