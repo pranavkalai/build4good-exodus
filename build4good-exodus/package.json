@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test:planets": "npx tsx scripts/test-planets.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.80.0",
@@ -16,7 +17,7 @@
     "ai": "^6.0.141",
     "clsx": "^2.1.1",
     "lucide-react": "^1.7.0",
-    "next": "14.2.35",
+    "next": "^14.2.35",
     "onnxruntime-web": "^1.24.3",
     "react": "^18",
     "react-dom": "^18",
