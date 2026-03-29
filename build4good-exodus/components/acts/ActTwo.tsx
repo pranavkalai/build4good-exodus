@@ -97,7 +97,7 @@ export default function ActTwo({ onNavigate, onSelectDestination }: {
     <div className="w-full h-screen bg-[#0e0e0e] flex flex-col overflow-hidden">
       <MissionNav activeAct="exoplanet" onNavigate={onNavigate} />
       <div className="flex flex-1 overflow-hidden pt-[60px]">
-        <SideNav activeItem="orbital" />
+        <SideNav />
         <FilterPanel />
         <div className="flex-1 h-full relative">
           <StarField>

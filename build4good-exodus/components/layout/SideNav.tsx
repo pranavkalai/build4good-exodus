@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, type Variants } from 'framer-motion'
 import { useAppStore } from '@/store/useAppStore'
 
 const GUIDE_SEEN_SESSION_KEY = 'operation-exodus-guide-seen'
@@ -52,18 +52,18 @@ const DEVPOST_CRITERIA = [
   }
 ]
 
-const backdropVariants = {
+const backdropVariants: Variants = {
   hidden: { opacity: 0 },
   visible: { opacity: 1 },
 }
 
-const panelVariants = {
+const panelVariants: Variants = {
   hidden: { x: -40, opacity: 0, scale: 0.97 },
   visible: { x: 0, opacity: 1, scale: 1, transition: { type: 'spring', damping: 22, stiffness: 280 } },
   exit: { x: -30, opacity: 0, scale: 0.97, transition: { duration: 0.18 } },
 }
 
-const itemVariants = {
+const itemVariants: Variants = {
   hidden: { opacity: 0, x: -12 },
   visible: (i: number) => ({
     opacity: 1,

@@ -84,7 +84,7 @@ export default function ActThree({ onNavigate }: { onNavigate: (act: Act) => voi
     <div className="w-full h-screen bg-[#171717] flex flex-col overflow-hidden">
       <MissionNav activeAct="launch" onNavigate={onNavigate} />
       <div className="flex flex-1 overflow-hidden pt-[60px]">
-        <SideNav activeItem="critical" />
+        <SideNav />
         <div className="flex h-full min-w-0 flex-1 flex-col">
           <OrbitalMap
             planet={selectedPlanet}

@@ -30,7 +30,7 @@ export default function ActOne({
       </div>
       <MissionNav activeAct="earth" onNavigate={onNavigate} />
       <div className="relative z-10 flex flex-1 overflow-hidden pt-16">
-        <SideNav activeItem="critical" />
+        <SideNav />
         <EarthViewer />
         <StatPanel />
       </div>
