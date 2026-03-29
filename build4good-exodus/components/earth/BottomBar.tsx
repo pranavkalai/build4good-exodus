@@ -12,7 +12,14 @@ const SIM_MINUTES_PER_HOUR = 60
 const SIM_SECONDS_PER_MINUTE = 60
 
 export function BottomBar({ onInitiate }: { onInitiate: () => void }) {
-  const { timeToBreachYears, breachingParam, tickYear, setEarthHeatLevel, earthHeatLevel } = useAppStore()
+  const {
+    timeToBreachYears,
+    breachingParam,
+    tickYear,
+    setEarthHeatLevel,
+    earthHeatLevel,
+    isTimerPaused,
+  } = useAppStore()
 
   const [totalMs, setTotalMs] = useState<number | null>(null)
   const [initialMs, setInitialMs] = useState<number | null>(null)
@@ -29,7 +36,7 @@ export function BottomBar({ onInitiate }: { onInitiate: () => void }) {
 
   // ⏱ smooth countdown (like your teammate’s)
   useEffect(() => {
-    if (totalMs === null || totalMs <= 0) return
+    if (totalMs === null || totalMs <= 0 || isTimerPaused) return
 
     const interval = setInterval(() => {
       setTotalMs(prev => {
@@ -39,18 +46,18 @@ export function BottomBar({ onInitiate }: { onInitiate: () => void }) {
     }, 10)
 
     return () => clearInterval(interval)
-  }, [totalMs])
+  }, [isTimerPaused, totalMs])
 
   // 🧠 trigger "year tick" separately (slower)
   useEffect(() => {
-    if (timeToBreachYears === null) return
+    if (timeToBreachYears === null || isTimerPaused) return
 
     const interval = setInterval(() => {
       tickYear()
     }, 5000) // 1 year = 5 seconds
 
     return () => clearInterval(interval)
-  }, [timeToBreachYears, tickYear])
+  }, [isTimerPaused, timeToBreachYears, tickYear])
 
   useEffect(() => {
     if (totalMs === null || initialMs === null || initialMs <= 0) {
@@ -71,7 +78,7 @@ export function BottomBar({ onInitiate }: { onInitiate: () => void }) {
   const isExpired = totalMs === 0
 
   const countdownLabel = formatSimulatedCountdown(totalMs)
-  const buttonFlashDuration = `${Math.max(0.75, 4.2 - earthHeatLevel * 3.3)}s`
+  const buttonFlashDuration = `${Math.max(1.05, 4.2 - earthHeatLevel * 3)}s`
 
   return (
     <div className="h-[60px] px-6 bg-[#171717] border-t border-stone-800 flex items-center justify-between shrink-0 relative overflow-hidden">

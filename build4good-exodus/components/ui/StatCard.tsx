@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { InfoTooltip } from '@/components/ui/InfoTooltip'
+import { useAppStore } from '@/store/useAppStore'
 
 interface StatCardProps {
   label: string
@@ -16,12 +17,21 @@ interface StatCardProps {
   thresholdPct?: number
 }
 
-function useCountTransition(target: number, duration = 1200) {
+function useCountTransition(target: number, paused: boolean, duration = 1200) {
   const [current, setCurrent] = useState(target)
   const frameRef = useRef<number | null>(null)
   const currentRef = useRef(target)
 
   useEffect(() => {
+    if (paused) {
+      if (frameRef.current !== null) {
+        cancelAnimationFrame(frameRef.current)
+        frameRef.current = null
+      }
+      setCurrent(currentRef.current)
+      return
+    }
+
     if (frameRef.current !== null) {
       cancelAnimationFrame(frameRef.current)
       frameRef.current = null
@@ -60,7 +70,7 @@ function useCountTransition(target: number, duration = 1200) {
         frameRef.current = null
       }
     }
-  }, [target, duration])
+  }, [paused, target, duration])
 
   return current
 }
@@ -150,9 +160,10 @@ export function StatCard({
   series,
   thresholdPct,
 }: StatCardProps) {
+  const isTimerPaused = useAppStore((state) => state.isTimerPaused)
   const numericTarget = parseFloat(value.replace(/[^0-9.-]/g, ''))
   const isNumeric = !isNaN(numericTarget)
-  const animated = useCountTransition(isNumeric ? numericTarget : 0)
+  const animated = useCountTransition(isNumeric ? numericTarget : 0, isTimerPaused)
   const displayValue = isNumeric
     ? (value.startsWith('+') ? '+' : '') + animated.toFixed(1)
     : value
@@ -165,7 +176,7 @@ export function StatCard({
   }, [series, isNumeric])
 
   useEffect(() => {
-    if (!isNumeric) return
+    if (!isNumeric || isTimerPaused) return
 
     const interval = setInterval(() => {
       setLiveSeries((prev) => {
@@ -175,7 +186,7 @@ export function StatCard({
     }, 1000)
 
     return () => clearInterval(interval)
-  }, [numericTarget, isNumeric])
+  }, [isTimerPaused, numericTarget, isNumeric])
 
   const dynamicColor =
     thresholdPct && thresholdPct > 0.8

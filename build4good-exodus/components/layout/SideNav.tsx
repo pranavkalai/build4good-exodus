@@ -1,7 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useAppStore } from '@/store/useAppStore'
+
+const GUIDE_SEEN_SESSION_KEY = 'operation-exodus-guide-seen'
 
 const INSTRUCTIONS = [
   {
@@ -288,6 +291,28 @@ function DevpostPopup({ onClose }: { onClose: () => void }) {
 
 export function SideNav() {
   const [openPanel, setOpenPanel] = useState<'instructions' | 'devpost' | null>(null)
+  const setTimerPaused = useAppStore((state) => state.setTimerPaused)
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return
+    }
+
+    const hasSeenGuide = window.sessionStorage.getItem(GUIDE_SEEN_SESSION_KEY) === 'true'
+
+    if (!hasSeenGuide) {
+      setOpenPanel('instructions')
+      window.sessionStorage.setItem(GUIDE_SEEN_SESSION_KEY, 'true')
+    }
+  }, [])
+
+  useEffect(() => {
+    setTimerPaused(openPanel !== null)
+
+    return () => {
+      setTimerPaused(false)
+    }
+  }, [openPanel, setTimerPaused])
 
   const toggle = (panel: 'instructions' | 'devpost') => {
     setOpenPanel(prev => (prev === panel ? null : panel))
