@@ -14,21 +14,19 @@ export function PlanetDetail({ onSelectDestination }: { onSelectDestination: () 
   }
 
   const circumference = 2 * Math.PI * 54
-  const dashOffset = circumference * (1 - planet.habitability / 100)
+  const dashOffset = circumference * (1 - planet.cvi / 100)
 
   return (
     <div className="w-[300px] shrink-0 h-full border-l border-stone-800 flex flex-col overflow-hidden">
-      {/* Main card */}
       <div className="flex-1 bg-neutral-700/40 backdrop-blur border-b border-stone-800 p-6 flex flex-col gap-5 overflow-y-auto">
-        {/* Planet name */}
         <div>
-          <h2 className="text-white text-3xl font-bold tracking-tight">{planet.name}</h2>
+          <h2 className="text-white text-2xl font-bold tracking-tight">{planet.name.toUpperCase()}</h2>
           <p className="text-rose-300 text-[10px] font-mono uppercase tracking-wide mt-0.5">
-            {planet.constellation} / {planet.starType}
+            RA {planet.ra.toFixed(2)}° / DEC {planet.dec.toFixed(2)}°
           </p>
         </div>
 
-        {/* Habitability ring */}
+        {/* CVI ring */}
         <div className="flex items-center justify-center py-2">
           <div className="relative w-[120px] h-[120px] flex items-center justify-center">
             <svg width="120" height="120" className="-rotate-90">
@@ -45,31 +43,28 @@ export function PlanetDetail({ onSelectDestination }: { onSelectDestination: () 
               />
             </svg>
             <div className="absolute flex flex-col items-center">
-              <span className="text-white text-2xl font-black">{planet.habitability}%</span>
-              <span className="text-stone-400 text-[8px] font-mono uppercase tracking-wider">HABITABILITY</span>
+              <span className="text-white text-2xl font-black">{planet.cvi}%</span>
+              <span className="text-stone-400 text-[8px] font-mono uppercase tracking-wider">CVI SCORE</span>
             </div>
           </div>
         </div>
 
-        {/* Stats */}
         <div className="flex flex-col divide-y divide-stone-800">
-          <StatRow label="Surface Temp" value={`${planet.surfaceTemp}`} unit="K" />
-          <StatRow label="Orbital Radius" value={`${planet.orbitalRadius}`} unit="RE" />
-          <StatRow label="Distance" value={`${planet.distanceLY.toLocaleString()}`} unit="LY" />
-        </div>
-
-        {/* Quote */}
-        <div className="p-3 bg-emerald-500/5 border-l-2 border-emerald-500">
-          <p className="text-stone-300/70 text-[10px] leading-4 font-['Inter']">
-            &quot;{planet.quote}&quot;
-          </p>
+          <StatRow label="Surface Temp" value={`${planet.temp}`} unit="K" />
+          <StatRow label="Radius" value={`${planet.radius.toFixed(2)}`} unit="RE" />
+          <StatRow label="Distance" value={`${planet.distanceLy.toLocaleString()}`} unit="LY" />
+          {planet.mass != null && (
+            <StatRow label="Mass" value={`${planet.mass.toFixed(2)}`} unit="ME" />
+          )}
+          {planet.period != null && (
+            <StatRow label="Orbital Period" value={`${planet.period.toFixed(1)}`} unit="DAYS" />
+          )}
         </div>
       </div>
 
-      {/* Select button */}
       <button
         onClick={onSelectDestination}
-        className="w-full py-4 bg-emerald-500 hover:bg-emerald-400 transition-colors flex items-center justify-center gap-3 shrink-0"
+        className="w-full py-4 bg-emerald-500 hover:bg-emerald-400 transition-colors flex items-center justify-center shrink-0"
       >
         <span className="text-green-950 text-sm font-black uppercase tracking-widest">
           SELECT AS DESTINATION

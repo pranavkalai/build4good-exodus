@@ -1,33 +1,19 @@
+import { getEarthData } from '@/lib/nasaPower'
+import { getEarthDataRegressionCoefficients } from '@/lib/get-earth-data-regression'
 import { NextResponse } from 'next/server'
 
-import {
-  getEarthDataRegressionCoefficients,
-  getEarthDataSharedNextIndex,
-} from '@/lib/get-earth-data-regression'
-import { getEarthData } from '@/lib/nasaPower'
-
-const UNITED_STATES_COORDINATES = {
-  latitude: 39.8283,
-  longitude: -98.5795,
-} as const
+const LAT = 39.5
+const LON = -98.35
 
 export async function GET() {
   try {
-    const { latitude, longitude } = UNITED_STATES_COORDINATES
-
-    const earthData = await getEarthData(latitude, longitude)
-    const regressionCoefficients =
-      getEarthDataRegressionCoefficients(earthData)
-    const nextIndex = getEarthDataSharedNextIndex(earthData)
-
-    return NextResponse.json({
-      regressionCoefficients: regressionCoefficients.coefficients,
-      nextIndex,
-    })
-  } catch (error) {
-    const message =
-      error instanceof Error ? error.message : 'Failed to fetch earth data'
-
-    return NextResponse.json({ error: message }, { status: 500 })
+    const earthData = await getEarthData(LAT, LON)
+    const regression = getEarthDataRegressionCoefficients(earthData)
+    return NextResponse.json({ ok: true, regression })
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Unknown error'
+    const stack = err instanceof Error ? err.stack : ''
+    console.error('Earth API error:', message, stack)
+    return NextResponse.json({ ok: false, error: message, stack }, { status: 500 })
   }
 }

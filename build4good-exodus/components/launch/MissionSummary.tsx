@@ -45,11 +45,11 @@ export function MissionSummary() {
           </div>
           <div className="flex justify-between items-end">
             <div>
-              <div className="text-stone-100 text-xl font-black leading-tight">{planet.name}</div>
-              <div className="text-orange-200 text-xs mt-0.5">Cygnus Constellation</div>
+                <div className="text-stone-100 text-xl font-black leading-tight">{planet.name.toUpperCase()}</div>
+                <div className="text-orange-200 text-xs mt-0.5">RA {planet.ra.toFixed(1)}° DEC {planet.dec.toFixed(1)}°</div>
             </div>
             <div className="text-right">
-              <div className="text-emerald-400 text-lg font-bold">{planet.habitability}%</div>
+              <div className="text-emerald-400 text-lg font-bold">{planet.cvi}%</div>
               <div className="text-stone-500 text-[9px] uppercase font-bold">Habitability</div>
             </div>
           </div>
@@ -57,8 +57,8 @@ export function MissionSummary() {
 
         {/* Stats */}
         <div className="flex flex-col border border-stone-800 divide-y divide-stone-800">
-          <MiniStat label="Travel Time" value="82 YRS" />
-          <MiniStat label="Cryo-Cycle" value="X-12" />
+            <MiniStat label="Distance" value={`${planet.distanceLy.toLocaleString()} LY`} />
+            <MiniStat label="CVI Score" value={`${planet.cvi}%`} />
         </div>
 
         {/* AI Mission Log */}

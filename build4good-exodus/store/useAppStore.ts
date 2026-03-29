@@ -3,43 +3,58 @@ import { create } from 'zustand'
 export interface Planet {
   id: string
   name: string
-  constellation: string
-  starType: string
-  habitability: number
-  surfaceTemp: number
-  orbitalRadius: number
-  distanceLY: number
-  quote: string
+  radius: number
+  mass: number | null
+  temp: number
+  distanceLy: number
+  period: number | null
+  ra: number
+  dec: number
+  cvi: number
+}
+
+export interface ParameterCoefficients {
+  slope: number | null
+  intercept: number | null
+}
+
+export interface EarthRegression {
+  location: { latitude: number; longitude: number }
+  coefficients: {
+    T2M: ParameterCoefficients
+    PRECTOTCORR: ParameterCoefficients
+    RH2M: ParameterCoefficients
+    WS2M: ParameterCoefficients
+    ALLSKY_SFC_SW_DWN: ParameterCoefficients
+  }
 }
 
 interface AppStore {
   selectedPlanet: Planet | null
+  planets: Planet[]
+  earthRegression: EarthRegression | null
+  earthLoading: boolean
   filters: {
-    habitability: number
-    planetSize: number
-    distanceLY: number
+    cvi: number
+    radius: number
+    distanceLy: number
   }
   setSelectedPlanet: (planet: Planet | null) => void
+  setPlanets: (planets: Planet[]) => void
+  setEarthRegression: (data: EarthRegression) => void
+  setEarthLoading: (loading: boolean) => void
   setFilter: (key: keyof AppStore['filters'], value: number) => void
 }
 
 export const useAppStore = create<AppStore>((set) => ({
-  selectedPlanet: {
-    id: 'kepler-452b',
-    name: 'KEPLER-452B',
-    constellation: 'Cygnus Constellation',
-    starType: 'G2V Star',
-    habitability: 92,
-    surfaceTemp: 265,
-    orbitalRadius: 1.63,
-    distanceLY: 1400,
-    quote: 'The planet has a high probability of liquid water on its surface, making it the most Earth-like candidate found to date.',
-  },
-  filters: {
-    habitability: 92,
-    planetSize: 1.6,
-    distanceLY: 1400,
-  },
+  selectedPlanet: null,
+  planets: [],
+  earthRegression: null,
+  earthLoading: true,
+  filters: { cvi: 0, radius: 2, distanceLy: 5000 },
   setSelectedPlanet: (planet) => set({ selectedPlanet: planet }),
+  setPlanets: (planets) => set({ planets }),
+  setEarthRegression: (data) => set({ earthRegression: data }),
+  setEarthLoading: (loading) => set({ earthLoading: loading }),
   setFilter: (key, value) => set(s => ({ filters: { ...s.filters, [key]: value } })),
 }))
