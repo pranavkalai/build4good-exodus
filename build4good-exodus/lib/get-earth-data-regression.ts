@@ -71,10 +71,14 @@ function isValidNasaValue(value: number | null | undefined): value is number {
   return value !== null && value !== undefined && Number.isFinite(value) && value > -900
 }
 
+function isMonthlyDateKey(dateKey: string): boolean {
+  return /^\d{6}$/.test(dateKey) && dateKey.slice(4, 6) !== '13'
+}
+
 function isValidNasaEntry(
   entry: [string, number | null | undefined]
 ): entry is [string, number] {
-  return isValidNasaValue(entry[1])
+  return isMonthlyDateKey(entry[0]) && isValidNasaValue(entry[1])
 }
 
 function getValidSortedEntries(series: NasaParameterSeries | undefined) {
